@@ -11,6 +11,10 @@ import numpy as np
 
 class Association:
     def __init__(self, set_, target):
+        # the default np.array objects have an undefined second dimension,
+        # so, instead, we reshape into a 2-d array, (1,n), so that we,
+        # effectively, have an n-dimensional vector. This makes the
+        # numpy linear algebra methods behave better
         self.set = set_.reshape(1, len(set_))
         self.target = target.reshape(1, len(target))
         self.matrix = np.dot(self.set.T, self.target)
@@ -36,6 +40,8 @@ def main():
     print()
 
     # Step 1: Create the correlation Matrix
+    # np.sum takes a second parameter, the axis to sum across, so we pass in "0"
+    # as the second argument
     correlation_matrix = np.sum([a.matrix for a in assocs], 0)
 
     print("Correlation Matrix generated from the Associations:")
