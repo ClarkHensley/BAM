@@ -21,18 +21,24 @@ class Association:
 
 def main():
     # Step 0: Define target associations
-    
-    #### Example Values I found online
-    # assoc_1 = Association(np.array([1, 1, -1, -1]), np.array([1, -1]))
-    # assoc_2 = Association(np.array([1, -1, 1, -1]), np.array([1, 1]))
-
-    #### Examples from Canvas
-    assoc_1 = Association(np.array([1, 1, 1, 1, 1, 1]), np.array([1, 1, 1]))
-    assoc_2 = Association(np.array([-1, -1, -1, -1, -1, -1]), np.array([-1, -1, -1]))
-    assoc_3 = Association(np.array([1, 1, -1, -1, 1, 1]), np.array([1, -1, 1]))
-    assoc_4 = Association(np.array([-1, -1, 1, 1, -1, -1]), np.array([-1, 1, -1]))
-
-    assocs = [assoc_1, assoc_2, assoc_3, assoc_4]
+    print("Bidirectional Associative Memory Generator:")
+    # The association vectors must be the same size, generate the lhs and rhs sizes
+    lh_size = generate_size("left-hand side of the Associations")
+    rh_size = generate_size("right-hand side of the Associations")
+    # Ensure at least one entry
+    print()
+    print("Values for the Associations may be entered separated by spaces, commas, or commas and white space: (a,b,c) or (a b c) or (a, b, c)")
+    print("Values for the BAM must be bits. Please enter 1 and -1 as the values. If you enter 0, these 0s will be converted to -1s. Other values are not valid entries.")
+    print()
+    assocs = list()
+    assocs.append(create_association(lh_size, rh_size))
+    # Allow the user to enter an arbitrary number of Associations
+    while True:
+        print()
+        if confirm("Are there more associations to add?"):
+            assocs.append(create_association(lh_size, rh_size))
+        else:
+            break
 
     print("Associations to be stored in the BAM:")
     for a in assocs:
@@ -64,7 +70,7 @@ def main():
 
     print()
     # Step 3: Test that the matrix returns the desired values in the backward direction
-    print("Confirming expected values in the bacward direction:")
+    print("Confirming expected values in the backward direction:")
     for a in assocs:
         # sign function to normalize values
         calculated_value = np.sign(np.dot(a.target, correlation_matrix.T))
@@ -76,6 +82,91 @@ def main():
         print("\tExpected Value:")
         print(f"\t{a.set}")
         print()
+
+
+def generate_size(target):
+    while True:
+        print(f"Please enter the size in bits of the {target}")
+        try:
+            size = int(input("> "))
+            if size < 1:
+                raise ValueError
+        except ValueError:
+            print("Error: The sizes of the associations must be integers greater than 0")
+        else:
+            if confirm(f"You entered {size}.", "yes"):
+                return size
+    
+
+def confirm(message, default=None):
+    check_str = "Is this correct (y/n)? "
+    yes_vals = ("yes", "y")
+    no_vals = ("no", "n")
+    if isinstance(default, str):
+        if default.lower() in yes_vals:
+            yes_vals = ("yes", "y", "")
+            check_str = "Is this correct (Y/n)? "
+        elif default.lower() in no_vals:
+            no_vals = ("no", "n", "")
+            check_str = "Is this correct (y/N)? "
+
+    while True:
+        print(message)
+        user_input = input(check_str)
+        if user_input.lower() in yes_vals:
+            return True
+        elif user_input.lower() in no_vals:
+            return False
+        else:
+            print("Error: invalid input")
+
+
+def create_association(lh_size, rh_size):
+    set_ = get_list(lh_size)
+    target = get_list(rh_size)
+    return Association(np.array(set_), np.array(target))
+
+
+def get_list(size):
+    while True:
+        print(f"Please enter {size} values for left-hand side of the association:")
+        side = input("> ")
+        # The formatting requires that we account for white-space, comma, and whitespace-comma separated strings
+        side = side.strip()
+        if "," in side:
+            side = side.split(",")
+        else:
+            side = side.split(" ")
+        formatted_side = list()
+        valid_input = True
+        for s in side:
+            s = s.strip()
+            if not s or s == ",":
+                continue
+            try:
+                formatted_s = int(s)
+                if formatted_s == 0:
+                    formatted_s = -1
+                if formatted_s not in (1, -1):
+                    raise ValueError
+            except ValueError:
+                print("Error: You must enter a list of whitespace, comma, or whitespace-comma separated integers in [1, 0, -1], formatted as (a,b,c) or (a b c) or (a, b, c)")
+                valid_input = False
+                break
+            else:
+                formatted_side.append(formatted_s)
+
+        # Invalid input, error already handled, just continue the loop
+        if not valid_input:
+            continue
+        
+        elif len(formatted_side) != size:
+            print(f"Error: You must enter {size} values for this list")
+
+        else:
+            if confirm(f"You entered {formatted_side}", "yes"):
+                return formatted_side
+
 
 if __name__ == "__main__":
     main()
